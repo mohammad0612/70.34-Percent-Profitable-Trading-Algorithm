@@ -1,0 +1,34 @@
+//@version=5
+strategy("CCI Strategy", overlay=true)
+
+// Define CCI length
+length = 30
+
+// Compute CCI
+cci = ta.cci(close, length)
+
+// Initialize variables
+var last_buy_signal_time = 0
+var last_cci_value = 0.0
+var last_cci_time = 0
+
+// Buy signal condition
+buy_signal = cci < -100
+
+// Time since last buy signal
+time_since_signal = time - last_buy_signal_time
+
+// Check for buy entry
+if buy_signal
+    last_cci_value := cci
+    last_cci_time := time
+    last_buy_signal_time := time
+else if time_since_signal <= 900000 and cci > 50 and last_cci_value < -100 and last_cci_time >= (time - 900000)
+    strategy.entry("Buy", strategy.long)
+
+// Check for exit conditions
+if (strategy.position_size > 0 and time - strategy.position_avg_price >= 600000) or (cci < 100 and cci < last_cci_value)
+    strategy.close("Buy")
+
+// Plot CCI
+plot(cci, "CCI", color.blue)
